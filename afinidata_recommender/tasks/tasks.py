@@ -29,7 +29,7 @@ app = Celery('tasks', backend="rpc", broker=CELERY_BROKER)
 
 
 @app.task
-def refresh_data(filename):
+def refresh_data():
     question_df = reader_cm.get_data(
         'id, post_id',
         'posts_question',
