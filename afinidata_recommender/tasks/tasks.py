@@ -6,17 +6,10 @@ from celery import Celery
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
-<<<<<<< HEAD:afinidata_recommender/tasks/tasks.py
 from afinidata_recommender.recommender.read_db import ReadDatabase
 from afinidata_recommender.recommender.models import CollaborativeFiltering
 from afinidata_recommender.recommender.preprocess import SetUpDataframes
 from afinidata_recommender.recommender.datasets import Datasets
-=======
-from recommender.read_db import ReadDatabase
-from recommender.models import CollaborativeFiltering
-from recommender.preprocess import SetUpDataframes
-from recommender.datasets import Datasets
->>>>>>> d841ab004947a8c641e94def626299875eed2fdc:tasks.py
 
 
 logging.basicConfig(level=logging.WARN)
