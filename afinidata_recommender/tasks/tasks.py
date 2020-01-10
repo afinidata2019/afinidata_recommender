@@ -81,7 +81,7 @@ def refresh_data(filename):
 
 
 @app.task
-def train(epochs=10000, lr=0.00001, alpha=0., depth=1):
+def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
     # extract data from posts_response into a pandas dataframe and
     # slightly process only relevant data for training
     # in this case, so far we are only considering data for which
