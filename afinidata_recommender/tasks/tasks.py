@@ -6,10 +6,17 @@ from celery import Celery
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+<<<<<<< HEAD:afinidata_recommender/tasks/tasks.py
 from afinidata_recommender.recommender.read_db import ReadDatabase
 from afinidata_recommender.recommender.models import CollaborativeFiltering
 from afinidata_recommender.recommender.preprocess import SetUpDataframes
 from afinidata_recommender.recommender.datasets import Datasets
+=======
+from recommender.read_db import ReadDatabase
+from recommender.models import CollaborativeFiltering
+from recommender.preprocess import SetUpDataframes
+from recommender.datasets import Datasets
+>>>>>>> d841ab004947a8c641e94def626299875eed2fdc:tasks.py
 
 
 logging.basicConfig(level=logging.WARN)
@@ -29,21 +36,48 @@ app = Celery('tasks', backend="rpc", broker=CELERY_BROKER)
 
 
 @app.task
-def refresh_data():
-    question_df = reader_cm.get_data('id, post_id', 'posts_question', None)
-    taxonomy_df = reader_cm.get_data('post_id, area_id', 'posts_taxonomy', None)
-    content_df = reader_cm.get_data('id, min_range, max_range', 'posts_post', None)
-    interaction_df = reader_cm.get_data('user_id, post_id', 'posts_interaction', "type IN ('sended', 'sent')")
-    interaction_df = interaction_df[~interaction_df['post_id'].isna()]
+def refresh_data(filename):
+    question_df = reader_cm.get_data(
+        'id, post_id',
+        'posts_question',
+        None)
 
+    taxonomy_df = reader_cm.get_data(
+        'post_id, area_id',
+        'posts_taxonomy',
+        None)
+
+    content_df = reader_cm.get_data(
+        'id, min_range, max_range',
+        'posts_post',
+        "status IN ('published')")
+
+    interaction_df = reader_cm.get_data(
+        'user_id, post_id',
+        'posts_interaction',
+        "type IN ('sended', 'sent', 'dispatched')")
+    interaction_df = interaction_df[~interaction_df['post_id'].isna()]
     interaction_df['post_id'] = interaction_df['post_id'].astype('int32')
 
-    pickle.dump(question_df, open("question.pkl", "wb"))
-    pickle.dump(taxonomy_df, open("taxonomy.pkl", "wb"))
-    pickle.dump(content_df, open("content.pkl", "wb"))
-    pickle.dump(interaction_df, open("interaction.pkl", "wb"))
+    response_df = reader_cm.get_data(
+        'user_id, response, question_id',
+        'posts_response',
+        "created_at >= '2019-09-20'",
+        None)
+    response_df = response_df[
+        (response_df['response'].apply(lambda x: x.isdigit())) & (response_df['response'] != '0')]
+    response_df = response_df.drop_duplicates().reset_index(drop=True)
 
-    return
+    fresh_data = {
+        'question_df': question_df.to_json(),
+        'taxonomy_df': taxonomy_df.to_json(),
+        'content_df': content_df.to_json(),
+        'interaction_df': interaction_df.to_json(),
+        'response_df': response_df.to_json()
+    }
+
+    with open(f'{filename}.pkl', 'wb') as f:
+        pickle.dump(fresh_data, f)
 
 
 @app.task
@@ -73,7 +107,7 @@ def train(epochs=10000, lr=0.00001, alpha=0., depth=1):
 
     # train test split
     datasets = Datasets(response_matrix)
-    train_set, test_set = datasets.train_test_split(0.10)
+    train_set, test_set = datasets.train_test_split(0.0)
 
     # model initialization
     model = CollaborativeFiltering()
@@ -98,18 +132,10 @@ def train(epochs=10000, lr=0.00001, alpha=0., depth=1):
     model.save_model(f'afinidata_recommender_model_specs')
     logging.warning(f'model has been saved to afinidata_recommender_model_specs.pkl in the local directory')
 
-
 @app.task
-def recommend(user_id, months):
-    # model initialization and load
+def recommend(user_id, months, data_required):
     model = CollaborativeFiltering()
 
     model.load_model('afinidata_recommender_model_specs')
 
-    question_df, taxonomy_df, content_df, interaction_df =\
-        (pickle.load(open(file_name, "rb")) for file_name in ["question.pkl", "taxonomy.pkl", "content.pkl", "interaction.pkl"])
-
-    ranking = model.afinidata_recommend(user_id=user_id, months=months, question_df=question_df, taxonomy_df=taxonomy_df, content_df=content_df, interaction_df=interaction_df)
-
-    return ranking.to_json()
-
+    return model.afinidata_recommend(user_id=user_id, months=months, data_required=data_required)
