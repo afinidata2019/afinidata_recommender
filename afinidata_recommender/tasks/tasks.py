@@ -129,7 +129,6 @@ def recommend(user_id, months):
     (pickle.load(open(file_name, "rb")) for file_name in
      ["question.pkl", "taxonomy.pkl", "content.pkl", "interaction.pkl", "response.pkl"])
 
-
     ranking = model.afinidata_recommend(user_id=user_id, months=months, question_df=question_df, taxonomy_df=taxonomy_df,
                                     content_df=content_df, interaction_df=interaction_df, response_df=response_df)
 

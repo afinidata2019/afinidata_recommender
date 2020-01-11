@@ -262,7 +262,8 @@ class CollaborativeFiltering(object):
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
 
-        area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').mean()
+        area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').apply(
+            lambda g: g.mean(skipna=True))
         area_performance['score'] = area_performance[
             ['response', 'predictions']].apply(
             lambda row: row['predictions'] if pd.isna(row['response']) else row['response'], axis=1)
