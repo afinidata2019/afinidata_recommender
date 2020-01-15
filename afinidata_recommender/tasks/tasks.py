@@ -117,7 +117,7 @@ def recommend(user_id, months):
     model = CollaborativeFiltering()
 
     model.load_model('afinidata_recommender_model_specs')
-    question_df, taxonomy_df, content_df, interaction_df, response_df =\
+    question_df, taxonomy_df, content_df, response_df =\
     (pickle.load(open(file_name, "rb")) for file_name in
      ["question.pkl", "taxonomy.pkl", "content.pkl", "response.pkl"])
 
