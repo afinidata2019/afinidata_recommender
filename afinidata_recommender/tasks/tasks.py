@@ -45,13 +45,6 @@ def refresh_data():
         'posts_post',
         "status IN ('published')")
 
-    interaction_df = reader_cm.get_data(
-        'user_id, post_id',
-        'posts_interaction',
-        "type IN ('sended', 'sent', 'dispatched')")
-    interaction_df = interaction_df[~interaction_df['post_id'].isna()]
-    interaction_df['post_id'] = interaction_df['post_id'].astype('int32')
-
     response_df = reader_cm.get_data(
         'user_id, response, question_id',
         'posts_response',
@@ -64,7 +57,6 @@ def refresh_data():
     pickle.dump(question_df, open("question.pkl", "wb"))
     pickle.dump(taxonomy_df, open("taxonomy.pkl", "wb"))
     pickle.dump(content_df, open("content.pkl", "wb"))
-    pickle.dump(interaction_df, open("interaction.pkl", "wb"))
     pickle.dump(response_df, open("response.pkl", "wb"))
 
 
@@ -127,9 +119,20 @@ def recommend(user_id, months):
     model.load_model('afinidata_recommender_model_specs')
     question_df, taxonomy_df, content_df, interaction_df, response_df =\
     (pickle.load(open(file_name, "rb")) for file_name in
-     ["question.pkl", "taxonomy.pkl", "content.pkl", "interaction.pkl", "response.pkl"])
+     ["question.pkl", "taxonomy.pkl", "content.pkl", "response.pkl"])
 
-    ranking = model.afinidata_recommend(user_id=user_id, months=months, question_df=question_df, taxonomy_df=taxonomy_df,
-                                    content_df=content_df, interaction_df=interaction_df, response_df=response_df)
+    sent_activities = reader_cm.get_data(
+        'post_id',
+        'posts_interaction',
+        f"type IN ('sended', 'sent', 'dispatched') AND user_id={user_id}")['post_id'].unique().tolist()
+
+    ranking = model.afinidata_recommend(
+        user_id=user_id,
+        months=months,
+        question_df=question_df,
+        taxonomy_df=taxonomy_df,
+        content_df=content_df,
+        response_df=response_df,
+        sent_activities=sent_activities)
 
     return ranking.to_json()

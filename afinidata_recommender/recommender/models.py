@@ -233,7 +233,7 @@ class CollaborativeFiltering(object):
             self.actors = model_specs['actors']
             self.has_been_trained = True
 
-    def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, interaction_df, response_df):
+    def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, response_df, sent_activities):
         # data is sequentially ordered and the relation between the indices and the actual
         # user_id is stored in self.actors['users']. if the user is in this list, which means
         # that this user has given at least one rating, then find it, else go to the
@@ -257,7 +257,6 @@ class CollaborativeFiltering(object):
         # for the age and activities not sent
         content_for_age = content_df[(content_df['min_range'] <= months) & (content_df['max_range'] >= months)][
             'id'].values.tolist()
-        sent_activities = interaction_df[interaction_df['user_id'] == user_id]['post_id'].values.tolist()
 
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
