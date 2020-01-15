@@ -233,7 +233,7 @@ class CollaborativeFiltering(object):
             self.actors = model_specs['actors']
             self.has_been_trained = True
 
-    def afinidata_recommend(self, user_id, months, data_required):
+    def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, interaction_df, response_df):
         # data is sequentially ordered and the relation between the indices and the actual
         # user_id is stored in self.actors['users']. if the user is in this list, which means
         # that this user has given at least one rating, then find it, else go to the
@@ -244,13 +244,6 @@ class CollaborativeFiltering(object):
         else:
             predictions = self.predict_rating(-1)
         predictions['question_id'] = self.actors['items']
-
-        # unfold the data required dictionary
-        question_df = pd.read_json(data_required['question_df'])
-        taxonomy_df = pd.read_json(data_required['taxonomy_df'])
-        content_df = pd.read_json(data_required['content_df'])
-        interaction_df = pd.read_json(data_required['interaction_df'])
-        response_df = pd.read_json(data_required['response_df'])
 
         response_df = response_df[response_df['user_id'] == user_id]
 
@@ -269,17 +262,8 @@ class CollaborativeFiltering(object):
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
 
-        # lists from which we are going to filter next, we will only deliver content appropiate
-        # for the age and activities not sent
-        content_for_age = content_df[(content_df['min_range'] <= months) & (content_df['max_range'] >= months)][
-            'id'].values.tolist()
-        sent_activities = interaction_df[interaction_df['user_id'] == user_id]['post_id'].values.tolist()
-
-        relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
-        relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
-
-
-        area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').mean()
+        area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').apply(
+            lambda g: g.mean(skipna=True))
         area_performance['score'] = area_performance[
             ['response', 'predictions']].apply(
             lambda row: row['predictions'] if pd.isna(row['response']) else row['response'], axis=1)
@@ -310,5 +294,4 @@ class CollaborativeFiltering(object):
         selected_area = np.random.choice(area_performance.index.values, p=area_performance['probabilities'].values)
         return predictions_temp[
             predictions_temp['area_id'] == selected_area
-            ].sort_values('predictions', ascending=False).to_json()
-
+            ].sort_values('predictions', ascending=False)
