@@ -20,6 +20,13 @@ class CollaborativeFiltering(object):
         self.name = 'Collaborative Filtering'
 
     def _initialize_model(self, n_features, alpha):
+        """
+        Initialize parameters to random numbers, losses to empty arrays and hyperparameters to
+        given arguments.
+        :param n_features: integer, number of latent features for the collaborative filtering method.
+        :param alpha: float, weight for the l2 regularization term in the model, the larger this number,
+        the strongest the regularization effect.
+        """
         self.parameters = {
             'mean_rating': 0.001 * np.random.rand(1, 1),
             'bias_user': 0.001 * np.random.rand(1, self.n_users),
@@ -40,19 +47,56 @@ class CollaborativeFiltering(object):
         return mu + b_user + b_item + np.dot(x.T, theta) - review_matrix
 
     def loss(self, review_matrix, mu, b_user, b_item, x, theta, alpha):
-        return (1 / 2.) * np.nansum(np.square(mu + b_user + b_item + np.dot(x.T, theta) - review_matrix)) \
+        """
+        Loss function with regularization.
+        :param review_matrix: numpy array with shape (n_items, n_users) containing ratings.
+        :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
+        :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
+        :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
+        :param x: model parameter with shape (n_features, n_items) for the latent item features
+        in the matrix factorization involved in collaborative filtering.
+        :param theta: model parameter with shape (n_features, n_users) for the latent user features
+        in the matrix factorization involved in collaborative filtering.
+        :param alpha: float, regularization weight.
+        :return: float, l2 loss function with l2 regularization, given the model parameters.
+        """
+        return (1 / 2.) * np.nansum(np.square(self._loss_root(review_matrix, mu, b_user, b_item, x, theta))) \
                + (alpha / 2.) * np.sum(np.square(x)) \
                + (alpha / 2.) * np.sum(np.square(theta)) \
                + (alpha / 2.) * np.sum(np.square(b_item)) \
                + (alpha / 2.) * np.sum(np.square(b_user))
 
-    def predict(self, mu, b_user, b_item, x, theta):
+    @staticmethod
+    def predict(mu, b_user, b_item, x, theta):
+        """
+        Predict and reconstruct the review matrix.
+        :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
+        :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
+        :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
+        :param x: model parameter with shape (n_features, n_items) for the latent item features
+        in the matrix factorization involved in collaborative filtering.
+        :param theta: model parameter with shape (n_features, n_users) for the latent user features
+        in the matrix factorization involved in collaborative filtering.
+        :return: numpy array with shape (n_items, n_users) with the predicted ratings.
+        """
         return mu + b_user + b_item + np.dot(x.T, theta)
 
-    def predict_default(self, mu, b_item):
+    @staticmethod
+    def predict_default(mu, b_item):
+        """
+        Predictions for users that have no ratings. The model becomes a popularity model where the prediction
+        for a particular item corresponds to mean + item bias.
+        :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
+        :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
+        :return: numpy array with shape (n_items, n_users) with the predicted ratings according to popularity.
+        """
         return mu + b_item
 
     def verify_gradients(self, review_matrix, alpha, n_features, lr):
+        """
+        This method implements the definition of a gradient and compares its result with the result for
+        gradients from the parameter_gradients method.
+        """
         mu = 0.001 * np.random.rand(1, 1)
         b_user = 0.001 * np.random.rand(1, self.n_users)
         b_item = 0.001 * np.random.rand(self.n_items, 1)
@@ -84,7 +128,23 @@ class CollaborativeFiltering(object):
         print(f'Gradient method: b_user {b_user_grad[0,5]:.5f} / gradient definition {b_user_grad_def:.5f} / difference {b_user_grad[0,5] - b_user_grad_def}')
         print(f'Gradient method: b_item {b_item_grad[5,0]:.5f} / gradient definition {b_item_grad_def:.5f} / difference {b_item_grad[5,0] - b_item_grad_def}')
 
-    def parameter_gradients(self, review_matrix, mu, b_user, b_item, x, theta, alpha, n_features):
+    @staticmethod
+    def parameter_gradients(review_matrix, mu, b_user, b_item, x, theta, alpha, n_features):
+        """
+        Gradients for the loss function with respect to all model parameters, according to the analytical
+        expressions for the loss function.
+        :param review_matrix: numpy array with shape (n_items, n_users) containing ratings.
+        :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
+        :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
+        :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
+        :param x: model parameter with shape (n_features, n_items) for the latent item features
+        in the matrix factorization involved in collaborative filtering.
+        :param theta: model parameter with shape (n_features, n_users) for the latent user features
+        in the matrix factorization involved in collaborative filtering.
+        :param alpha: float, regularization weight.
+        :param n_features: latent features for the depth of matrix factorization
+        :return: tuple containing numpy arrays for gradients with respect to all parameters.
+        """
         mask = ~np.isnan(review_matrix)
         n_posts, n_users = review_matrix.shape
 
@@ -125,6 +185,24 @@ class CollaborativeFiltering(object):
         return mu_grad, b_user_grad, b_item_grad, x_grad, theta_grad
 
     def train(self, resume, train_matrix, test_matrix, epochs, alpha, n_features, lr):
+        """
+        Training phase in which the loss function is minimized in a sequence of minimization steps
+        corresponding to the gradient descent method using the entire training dataset. After each
+        minimization step, the loss function is computed for the train and test data. The result of
+        this method is a collection of model parameters, stored as class properties, which minimize
+        the loss function.
+        :param resume: boolean, if True, model parameters are loaded from the class properties and
+        training resumes starting at those parameters; if False, model parameters are randomly
+        initialized and minimization starts from those parameters.
+        :param train_matrix: numpy array with shape (n_items, n_users) corresponding to the train
+        rating matrix.
+        :param test_matrix: numpy array with shape (n_items, n_users) corresponding to the test
+        rating matrix.
+        :param epochs: integer, number of training epochs.
+        :param alpha: float, regularization weight.
+        :param n_features: integer, latent features.
+        :param lr: float, step size for the gradient descent method.
+        """
         if not resume:
             self._initialize_model(n_features, alpha)
             self.has_been_trained = True
@@ -186,6 +264,14 @@ class CollaborativeFiltering(object):
         print(f'Epoch {epochs:05d} / train loss {train_loss:.6f} / test loss {test_loss:.6f}')
 
     def predict_rating(self, idx):
+        """
+         Creates a pandas dataframe with the predicted ratings for a particular user specified by its
+         index in the numpy rating matrix. The resulting dataframe must then be related to a particular
+         user by finding the user_id corresponding to that particular array index. If the idx does not
+         exist in the predictions array, the predictions corresponds to a popularity based model.
+         :param idx: numpy array column index.
+         :return: pandas dataframe with column `predictions`.
+        """
         try:
             predictions = self.predict(
                 self.parameters['mean_rating'],
@@ -211,6 +297,13 @@ class CollaborativeFiltering(object):
         })
 
     def save_model(self, filename):
+        """
+        Creates a specification for a collaborative filtering model and saves it to a pickle file. The
+        specification includes model hyperparameters, model parameters, test and train losses and lists
+        of users and items.
+        :param filename: string, filename without extension, to be saved with respect to the script
+        directory.
+        """
         model_specs = {
             'n_users': self.n_users,
             'n_items': self.n_items,
@@ -223,6 +316,11 @@ class CollaborativeFiltering(object):
             pickle.dump(model_specs, f)
 
     def load_model(self, filename):
+        """
+        Loads the pickle file with filename specified containing the model specifications into the class
+        properties.
+        :param filename: string, filename without extensions, specified with respect to the script directory.
+        """
         with open(f'{filename}.pkl', 'rb') as f:
             model_specs = pickle.load(f)
             self.n_users = model_specs['n_users']
@@ -234,6 +332,35 @@ class CollaborativeFiltering(object):
             self.has_been_trained = True
 
     def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, response_df, sent_activities):
+        """
+        Creates a pandas dataframe containing the ranked items for a specific user. This method implements
+        the specific decisions made with respect to the role the collaborative filtering model must play within
+        the way we consider content should be delivered.
+
+        The sequence of decisions is the following:
+        1. We get the predictions for a particular user,
+        2. The content is divided into several categories. We choose most probably the category in which
+        the user has performed worst in average, according to empirical data. If there is not available
+        data for a particular category, we use the average predicted rating for such category. This category
+        selection is non-deterministic, that is, we create some probability distribution over categories
+        that priviledges a category as its mean rating decreases. This randomness allows for variation.
+        3. Once we select a category, we choose the activity with the highest predicted rating.
+
+        We apply the following filters: we remove activities that have already been seen, although not
+        necessarily rated; we select only activities from the age range to which the user belongs. If, after
+        these filters, there are no activities for a category, these category is removed from the probability
+        distribution. If there are no activities in all categories, the filter for seen activities is not
+        applied.
+        :param user_id: integer.
+        :param months: integer, age of the user in months.
+        :param question_df: pandas dataframe with the questions information (question_id, post_id).
+        :param taxonomy_df: pandas dataframe with the activities categories, to which category belongs each
+        activity.
+        :param content_df: pandas dataframe with content information (post_id, age ranges).
+        :param response_df: pandas dataframe with the response information (response, response_id, question_id).
+        :param sent_activities: list of activities already sent to the user.
+        :return: pandas dataframe containing the ranked activities from the selected category.
+        """
         # data is sequentially ordered and the relation between the indices and the actual
         # user_id is stored in self.actors['users']. if the user is in this list, which means
         # that this user has given at least one rating, then find it, else go to the

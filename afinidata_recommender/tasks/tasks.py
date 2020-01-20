@@ -30,6 +30,9 @@ app = Celery('tasks', backend="rpc", broker=CELERY_BROKER)
 
 @app.task
 def refresh_data():
+    """
+    Task that reloads particular neccesary data from the db and saves it to pickle files.
+    """
     question_df = reader_cm.get_data(
         'id, post_id',
         'posts_question',
@@ -62,6 +65,10 @@ def refresh_data():
 
 @app.task
 def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
+    """
+    Train the collaborative filtering model according to the specified parameters and saves it to a
+    pickle file.
+    """
     # extract data from posts_response into a pandas dataframe and
     # slightly process only relevant data for training
     # in this case, so far we are only considering data for which
@@ -111,6 +118,7 @@ def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
     logging.info('*' * 80)
     model.save_model(f'afinidata_recommender_model_specs')
     logging.warning(f'model has been saved to afinidata_recommender_model_specs.pkl in the local directory')
+
 
 @app.task
 def recommend(user_id, months):
