@@ -31,7 +31,8 @@ app = Celery('tasks', backend="rpc", broker=CELERY_BROKER)
 @app.task
 def refresh_data():
     """
-    Task that reloads particular neccesary data from the db and saves it to pickle files.
+    Task that reloads particular necessary data from the CM_BD db and saves it to pickle files.
+    1.
     """
     question_df = reader_cm.get_data(
         'id, post_id',
@@ -66,8 +67,12 @@ def refresh_data():
 @app.task
 def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
     """
-    Train the collaborative filtering model according to the specified parameters and saves it to a
-    pickle file.
+    Trains the collaborative filtering model according to the specified parameters and saves it to a
+    pickle file. The default hyperparameters result from hyperparameter selection performed elsewhere.
+    :param epochs: integer, number of training epochs, that is, gradient descent optimization steps.
+    :param lr: float, learning rate or step size for all parameter gradients in gradient descent.
+    :param alpha: float, regularization term weight.
+    :param depth: integer, latent features for collaborative filtering.
     """
     # extract data from posts_response into a pandas dataframe and
     # slightly process only relevant data for training
@@ -122,6 +127,12 @@ def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
 
 @app.task
 def recommend(user_id, months):
+    """
+    Loads the pickle files saved in the refresh_data method and creates a recommendation dataframe.
+    :param user_id: integer.
+    :param months: integer, child age in months.
+    :return: json, conversion to this format of the pandas dataframe containing ranked activities.
+    """
     model = CollaborativeFiltering()
 
     model.load_model('afinidata_recommender_model_specs')
