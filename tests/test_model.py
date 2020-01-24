@@ -1,0 +1,3 @@
+import pytest
+
+from afinidata_recommender.recommender.models import CollaborativeFiltering
