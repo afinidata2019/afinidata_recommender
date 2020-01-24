@@ -1,3 +1,4 @@
+from collections import Counter
 import logging
 import os
 import pickle
@@ -99,7 +100,7 @@ def train(epochs=10000, lr=0.00001, alpha=0., depth=2):
 
     # train test split
     datasets = Datasets(response_matrix)
-    train_set, test_set = datasets.train_test_split(0.0)
+    train_set, test_set = datasets.train_test_split(0.1)
 
     # model initialization
     model = CollaborativeFiltering()
@@ -143,7 +144,8 @@ def recommend(user_id, months):
     sent_activities = reader_cm.get_data(
         'post_id',
         'posts_interaction',
-        f"type IN ('sended', 'sent', 'dispatched') AND user_id={user_id}")['post_id'].unique().tolist()
+        f"type IN ('sended', 'sent', 'dispatched') AND user_id={user_id}")['post_id'].dropna().tolist()
+    sent_count = Counter(sent_activities)
 
     ranking = model.afinidata_recommend(
         user_id=user_id,
@@ -152,6 +154,6 @@ def recommend(user_id, months):
         taxonomy_df=taxonomy_df,
         content_df=content_df,
         response_df=response_df,
-        sent_activities=sent_activities)
+        sent_count=sent_count)
 
     return ranking.to_json()

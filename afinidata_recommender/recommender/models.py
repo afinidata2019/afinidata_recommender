@@ -331,7 +331,7 @@ class CollaborativeFiltering(object):
             self.actors = model_specs['actors']
             self.has_been_trained = True
 
-    def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, response_df, sent_activities):
+    def afinidata_recommend(self, user_id, months, question_df, taxonomy_df, content_df, response_df, sent_count):
         """
         Creates a pandas dataframe containing the ranked items for a specific user. This method implements
         the specific decisions made with respect to the role the collaborative filtering model must play within
@@ -358,7 +358,7 @@ class CollaborativeFiltering(object):
         activity.
         :param content_df: pandas dataframe with content information (post_id, age ranges).
         :param response_df: pandas dataframe with the response information (response, response_id, question_id).
-        :param sent_activities: list of activities already sent to the user.
+        :param sent_count: Counter object with the counts of all activities already sent to the user.
         :return: pandas dataframe containing the ranked activities from the selected category.
         """
         # data is sequentially ordered and the relation between the indices and the actual
@@ -379,12 +379,14 @@ class CollaborativeFiltering(object):
         predictions = pd.merge(predictions, taxonomy_df, 'inner', 'post_id')
         predictions = pd.merge(predictions, response_df, 'outer', 'question_id')
         predictions.drop(['id', 'user_id'], axis=1, inplace=True)
+        predictions['response'] = predictions['response'].astype('float')
 
         # lists from which we are going to filter next, we will only deliver content appropiate
         # for the age and activities not sent
         content_for_age = content_df[(content_df['min_range'] <= months) & (content_df['max_range'] >= months)][
             'id'].values.tolist()
 
+        sent_activities = sent_count.keys()
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
 
@@ -405,7 +407,8 @@ class CollaborativeFiltering(object):
         # age content, there are no activities left, send an activity from the pool of all
         # activities appropiate for an age that has already been seen. if, after these filters,
         # there is something left, select from the areas for which there are activities left.
-        if len(relevant_unseen_predictions.index) == 0:
+        has_no_activities_left = len(relevant_unseen_predictions.index) == 0
+        if has_no_activities_left:
             predictions_temp = relevant_predictions
         else:
             available_areas = relevant_unseen_predictions['area_id'].unique()
@@ -413,11 +416,17 @@ class CollaborativeFiltering(object):
             predictions_temp = relevant_unseen_predictions
 
         area_performance['probabilities'] = area_performance['probabilities'] / area_performance['probabilities'].sum()
+        predictions_temp['sent_count'] = predictions_temp['post_id'].apply(
+            lambda x: sent_count[x] if x in sent_count else 0)
 
         print(area_performance)
 
         # we randomly select an area according to the assigned probabilities
         selected_area = np.random.choice(area_performance.index.values, p=area_performance['probabilities'].values)
-        return predictions_temp[
+        unranked_predictions = predictions_temp[
             predictions_temp['area_id'] == selected_area
-            ].sort_values('predictions', ascending=False)
+            ]
+        if has_no_activities_left:
+            return unranked_predictions.sort_values('sent_count', ascending=True)
+        else:
+            return unranked_predictions.sort_values('predictions', ascending=False)
