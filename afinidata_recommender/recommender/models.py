@@ -92,42 +92,6 @@ class CollaborativeFiltering(object):
         """
         return mu + b_item
 
-    def verify_gradients(self, review_matrix, alpha, n_features, lr):
-        """
-        This method implements the definition of a gradient and compares its result with the result for
-        gradients from the parameter_gradients method.
-        """
-        mu = 0.001 * np.random.rand(1, 1)
-        b_user = 0.001 * np.random.rand(1, self.n_users)
-        b_item = 0.001 * np.random.rand(self.n_items, 1)
-        x = 0.001 * np.random.rand(n_features, self.n_items)
-        theta = 0.001 * np.random.rand(n_features, self.n_users)
-
-        mu_grad, b_user_grad, b_item_grad, x_grad, theta_grad = self.parameter_gradients(
-            review_matrix, mu, b_user, b_item, x, theta, alpha, n_features
-        )
-
-        mu_adv = mu + lr
-
-        b_user_adv = b_user.copy()
-        b_user_adv[0, 5] += lr
-
-        b_item_adv = b_item.copy()
-        b_item_adv[5, 0] += lr
-
-        mu_grad_def = (self.loss(review_matrix, mu_adv, b_user, b_item, x, theta, alpha) -
-                       self.loss(review_matrix, mu, b_user, b_item, x, theta, alpha)) / lr
-
-        b_user_grad_def = (self.loss(review_matrix, mu, b_user_adv, b_item, x, theta, alpha) -
-                           self.loss(review_matrix, mu, b_user, b_item, x, theta, alpha)) / lr
-
-        b_item_grad_def = (self.loss(review_matrix, mu, b_user, b_item_adv, x, theta, alpha) -
-                           self.loss(review_matrix, mu, b_user, b_item, x, theta, alpha)) / lr
-
-        print(f'Gradient method: mu     {mu_grad:.5f} / gradient definition {mu_grad_def:.5f} / difference {mu_grad - mu_grad_def}')
-        print(f'Gradient method: b_user {b_user_grad[0,5]:.5f} / gradient definition {b_user_grad_def:.5f} / difference {b_user_grad[0,5] - b_user_grad_def}')
-        print(f'Gradient method: b_item {b_item_grad[5,0]:.5f} / gradient definition {b_item_grad_def:.5f} / difference {b_item_grad[5,0] - b_item_grad_def}')
-
     @staticmethod
     def parameter_gradients(review_matrix, mu, b_user, b_item, x, theta, alpha, n_features):
         """
@@ -423,10 +387,8 @@ class CollaborativeFiltering(object):
 
         # we randomly select an area according to the assigned probabilities
         selected_area = np.random.choice(area_performance.index.values, p=area_performance['probabilities'].values)
-        unranked_predictions = predictions_temp[
-            predictions_temp['area_id'] == selected_area
-            ]
+
         if has_no_activities_left:
-            return unranked_predictions.sort_values('sent_count', ascending=True)
+            return predictions_temp.sort_values('sent_count', ascending=True)
         else:
-            return unranked_predictions.sort_values('predictions', ascending=False)
+            return predictions_temp[predictions_temp['area_id'] == selected_area].sort_values('predictions', ascending=False)

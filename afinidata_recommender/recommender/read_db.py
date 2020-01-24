@@ -31,6 +31,9 @@ class ReadDatabase(object):
         query = text(f'SELECT {sql_query_columns} FROM {self.db}.{table} {filter_text}')
         print('-'*70 + '\n'
               + f'reading columns {sql_query_columns} from table {table} from database {self.db}')
-        df = pd.read_sql(query, connection, index_col=index)
+        df = pd.read_sql(
+            query,
+            connection,
+            index_col=index)
         connection.close()
         return df
