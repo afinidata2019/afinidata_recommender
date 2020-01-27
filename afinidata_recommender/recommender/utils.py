@@ -1,19 +1,7 @@
-import unicodedata
+import numpy as np
 
 
-def strip_accents_lower(text):
-    """
-    Remove accents and lowercase text.
-    :param text: string.
-    :return: string, processed text.
-    """
-    try:
-        text = unicode(text, 'utf-8')
-    except NameError: # unicode is a default on python 3
-        pass
-
-    text = unicodedata.normalize('NFD', text)\
-           .encode('ascii', 'ignore')\
-           .decode("utf-8")
-
-    return str(text).lower()
+def shuffle_columns(df):
+    for column in df.columns:
+        df[column] = np.random.permutation(df[column].values)
+    return df
