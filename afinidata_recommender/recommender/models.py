@@ -339,8 +339,18 @@ class CollaborativeFiltering(object):
         response_df = response_df[response_df['user_id'] == user_id]
 
         # we add the columns corresponding to question_id and area_id
-        predictions = pd.merge(predictions, question_df, 'inner', left_on='question_id', right_on='id')
-        predictions = pd.merge(predictions, taxonomy_df, 'inner', 'post_id')
+        predictions = pd.merge(question_df, predictions, 'outer', right_on='question_id', left_on='id')
+        if user_id in self.actors['users']:
+            predictions['predictions'] = predictions['predictions'].apply(
+                lambda x: self.parameters['mean_rating'][0, 0] + self.parameters['bias_user'][0, idx[0]] if pd.isna(
+                    x) else x
+            )
+        else:
+            predictions['predictions'] = predictions['predictions'].apply(
+                lambda x: self.parameters['mean_rating'][0, 0] if x == np.nan else x
+            )
+
+        predictions = pd.merge(predictions, taxonomy_df, 'outer', 'post_id')
         predictions = pd.merge(predictions, response_df, 'outer', 'question_id')
         predictions.drop(['id', 'user_id'], axis=1, inplace=True)
         predictions['response'] = predictions['response'].astype('float')
@@ -349,10 +359,14 @@ class CollaborativeFiltering(object):
         # for the age and activities not sent
         content_for_age = content_df[(content_df['min_range'] <= months) & (content_df['max_range'] >= months)][
             'id'].values.tolist()
+        print(content_for_age)
+        print(predictions.columns)
+        print(sorted(predictions['question_id'].values.tolist()))
 
         sent_activities = sent_count.keys()
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
+        print(relevant_unseen_predictions)
 
         area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').apply(
             lambda g: g.mean(skipna=True))
@@ -391,4 +405,6 @@ class CollaborativeFiltering(object):
         if has_no_activities_left:
             return predictions_temp.sort_values('sent_count', ascending=True)
         else:
-            return predictions_temp[predictions_temp['area_id'] == selected_area].sort_values('predictions', ascending=False)
+            return predictions_temp[
+                predictions_temp['area_id'] == selected_area
+                ].sort_values('predictions', ascending=False)
