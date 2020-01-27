@@ -359,14 +359,10 @@ class CollaborativeFiltering(object):
         # for the age and activities not sent
         content_for_age = content_df[(content_df['min_range'] <= months) & (content_df['max_range'] >= months)][
             'id'].values.tolist()
-        print(content_for_age)
-        print(predictions.columns)
-        print(sorted(predictions['question_id'].values.tolist()))
 
         sent_activities = sent_count.keys()
         relevant_predictions = predictions[predictions['post_id'].isin(content_for_age)]
         relevant_unseen_predictions = relevant_predictions[~relevant_predictions['post_id'].isin(sent_activities)]
-        print(relevant_unseen_predictions)
 
         area_performance = relevant_predictions[['predictions', 'area_id', 'response']].groupby('area_id').apply(
             lambda g: g.mean(skipna=True))
