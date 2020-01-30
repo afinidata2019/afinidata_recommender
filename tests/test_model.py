@@ -1,6 +1,11 @@
+import os
+import random
+
+from dotenv import load_dotenv
 import numpy as np
 import pandas as pd
 import pytest
+from sqlalchemy import create_engine
 
 from afinidata_recommender.recommender.models import CollaborativeFiltering
 from afinidata_recommender.recommender.read_db import ReadDatabase
@@ -154,3 +159,36 @@ class TestTraining:
             assert np.linalg.norm(parameters_before[parameter] - parameters_after[parameter]) > 0.0
 
         assert random_model.has_been_trained
+
+
+class TestReadDatabase:
+
+    def test_read_max_age(self):
+        load_dotenv('.env')
+
+        # environment variables
+        DB_URI = os.environ.get("DB_URI")
+
+        # set up database reader
+        engine = create_engine(DB_URI)
+        reader_cm = ReadDatabase(engine, 'CM_BD')
+        reader_mu = ReadDatabase(engine, 'contentManagerUsers')
+
+        max_ages = reader_cm.get_data(
+            'id, max_range',
+            'posts_post'
+        )
+
+        max_age = max_ages['max_range'].max()
+        assert max_age == 200
+
+        min_ages = reader_cm.get_data(
+            'id, min_range',
+            'posts_post',
+            "status IN ('published')"
+        )
+
+        min_age = min_ages['min_range'].min()
+        assert min_age == 0
+
+
