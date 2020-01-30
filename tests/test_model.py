@@ -43,6 +43,10 @@ def zero_model():
     model = CollaborativeFiltering()
     model.n_users = 100
     model.n_items = 100
+    model.actors = {
+        'users': [i for i in range(100)],
+        'items': [i for i in range(100)]
+    }
 
     n_features = 2
 
@@ -60,6 +64,10 @@ def random_model():
     model = CollaborativeFiltering()
     model.n_users = 100
     model.n_items = 100
+    model.actors = {
+        'users': [i for i in range(100)],
+        'items': [i for i in range(100)]
+    }
 
     n_features = 2
     alpha = 0.
@@ -166,6 +174,9 @@ class TestTraining:
 
         assert model_predictions.mean() == 0
         assert model_predictions_default.mean() == 0
+
+    def test_save_and_load(self, random_model):
+        parameters_before = random_model.parameters
 
 
 class TestReadDatabase:
