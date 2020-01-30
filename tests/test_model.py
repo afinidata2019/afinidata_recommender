@@ -13,9 +13,9 @@ from afinidata_recommender.recommender.preprocess import SetUpDataframes
 from afinidata_recommender.recommender.datasets import Datasets
 
 
-@pytest.fixture
-def response_df():
-    return pd.read_csv('response_df.csv')
+#@pytest.fixture
+#def response_df():
+#    return pd.read_csv('response_df.csv')
 
 
 @pytest.fixture
@@ -160,6 +160,13 @@ class TestTraining:
 
         assert random_model.has_been_trained
 
+    def test_prediction(self, zero_model):
+        model_predictions = zero_model.predict_rating(50)['predictions']
+        model_predictions_default = zero_model.predict_rating(1000)['predictions']
+
+        assert model_predictions.mean() == 0
+        assert model_predictions_default.mean() == 0
+
 
 class TestReadDatabase:
 
@@ -172,7 +179,6 @@ class TestReadDatabase:
         # set up database reader
         engine = create_engine(DB_URI)
         reader_cm = ReadDatabase(engine, 'CM_BD')
-        reader_mu = ReadDatabase(engine, 'contentManagerUsers')
 
         max_ages = reader_cm.get_data(
             'id, max_range',
