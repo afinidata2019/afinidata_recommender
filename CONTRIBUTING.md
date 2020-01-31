@@ -12,10 +12,15 @@ Here are some important resources:
   
 ## Running in development
 
-To run **afinidata** on development:
+To run **afinidata** on development, we recommend that an environmente be created:
 
     $ git clone https://github.com/afinidata2019/afinidata_recommender.git
+    $ cd afinidata_recommender
+    $ virtualenv myenvironment
+    $ source myenvironment/bin/activate
     $ python install -r requirements.txt
+    
+You also have to install a Celery worker server to process Celery tasks. We use [RabbitMQ](http://docs.celeryproject.org/en/latest/getting-started/brokers/rabbitmq.html#broker-rabbitmq).
     
 ## Code of Conduct
 
@@ -46,9 +51,10 @@ Start reading our code and you'll get the hang of it. We try to optimize for rea
   * Indent using two spaces (soft tabs)
   * We follow PEP-8 loosely, periodically run a linter to ensure uniform code formatting.
   * This is open source software. Consider the people who will read your code, and make it look nice for them. It's sort of like driving a car: Perhaps you love doing donuts when you're alone, but with passengers the goal is to make the ride as smooth as possible.
-  * And More, pull requests regarding this, contributing or documentation are also quite appreciated
+  * And More, pull requests regarding this, contributing or documentation are also quite appreciated.
 
 
-on behalf of **afini**'s team 
+On behalf of **afini**'s team 
 thanks again for your interest,
+
 Pedro, Data scientist @ Afinidata
