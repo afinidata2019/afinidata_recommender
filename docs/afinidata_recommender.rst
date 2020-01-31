@@ -20,6 +20,13 @@ afinidata\_recommender.celery\_app module
    :undoc-members:
    :show-inheritance:
 
+afinidata\_recommender.config module
+------------------------------------
+
+.. automodule:: afinidata_recommender.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 afinidata\_recommender.recommend module
 ---------------------------------------
@@ -36,7 +43,6 @@ afinidata\_recommender.train module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 
 Module contents

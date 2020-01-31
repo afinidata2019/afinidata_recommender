@@ -19,13 +19,14 @@ class CollaborativeFiltering(object):
     def __init__(self):
         self.name = 'Collaborative Filtering'
 
-    def _initialize_model(self, n_features, alpha):
+    def initialize_model(self, n_features, alpha):
         """
         Initialize parameters to random numbers, losses to empty arrays and hyperparameters to
         given arguments.
+
         :param n_features: integer, number of latent features for the collaborative filtering method.
         :param alpha: float, weight for the l2 regularization term in the model, the larger this number,
-        the strongest the regularization effect.
+         the strongest the regularization effect.
         """
         self.parameters = {
             'mean_rating': 0.001 * np.random.rand(1, 1),
@@ -49,14 +50,15 @@ class CollaborativeFiltering(object):
     def loss(self, review_matrix, mu, b_user, b_item, x, theta, alpha):
         """
         Loss function with regularization.
+
         :param review_matrix: numpy array with shape (n_items, n_users) containing ratings.
         :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
         :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
         :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
-        :param x: model parameter with shape (n_features, n_items) for the latent item features
-        in the matrix factorization involved in collaborative filtering.
+        :param x: model parameter with shape (n_features, n_items) for the latent item features in
+         the matrix factorization involved in collaborative filtering.
         :param theta: model parameter with shape (n_features, n_users) for the latent user features
-        in the matrix factorization involved in collaborative filtering.
+         in the matrix factorization involved in collaborative filtering.
         :param alpha: float, regularization weight.
         :return: float, l2 loss function with l2 regularization, given the model parameters.
         """
@@ -70,13 +72,14 @@ class CollaborativeFiltering(object):
     def predict(mu, b_user, b_item, x, theta):
         """
         Predict and reconstruct the review matrix.
+
         :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
         :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
         :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
         :param x: model parameter with shape (n_features, n_items) for the latent item features
-        in the matrix factorization involved in collaborative filtering.
+         in the matrix factorization involved in collaborative filtering.
         :param theta: model parameter with shape (n_features, n_users) for the latent user features
-        in the matrix factorization involved in collaborative filtering.
+         in the matrix factorization involved in collaborative filtering.
         :return: numpy array with shape (n_items, n_users) with the predicted ratings.
         """
         return mu + b_user + b_item + np.dot(x.T, theta)
@@ -86,6 +89,7 @@ class CollaborativeFiltering(object):
         """
         Predictions for users that have no ratings. The model becomes a popularity model where the prediction
         for a particular item corresponds to mean + item bias.
+
         :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
         :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
         :return: numpy array with shape (n_items, n_users) with the predicted ratings according to popularity.
@@ -97,14 +101,15 @@ class CollaborativeFiltering(object):
         """
         Gradients for the loss function with respect to all model parameters, according to the analytical
         expressions for the loss function.
+
         :param review_matrix: numpy array with shape (n_items, n_users) containing ratings.
         :param mu: model parameter with shape (1, 1) for the mean rating over all users and items.
         :param b_user: model parameter with shape (1, n_users) for the rating bias for each user.
         :param b_item: model parameter with shape (n_items, 1) for the rating bias for each item.
         :param x: model parameter with shape (n_features, n_items) for the latent item features
-        in the matrix factorization involved in collaborative filtering.
+         in the matrix factorization involved in collaborative filtering.
         :param theta: model parameter with shape (n_features, n_users) for the latent user features
-        in the matrix factorization involved in collaborative filtering.
+         in the matrix factorization involved in collaborative filtering.
         :param alpha: float, regularization weight.
         :param n_features: latent features for the depth of matrix factorization
         :return: tuple containing numpy arrays for gradients with respect to all parameters.
@@ -155,20 +160,21 @@ class CollaborativeFiltering(object):
         minimization step, the loss function is computed for the train and test data. The result of
         this method is a collection of model parameters, stored as class properties, which minimize
         the loss function.
+
         :param resume: boolean, if True, model parameters are loaded from the class properties and
-        training resumes starting at those parameters; if False, model parameters are randomly
-        initialized and minimization starts from those parameters.
+         training resumes starting at those parameters; if False, model parameters are randomly
+         initialized and minimization starts from those parameters.
         :param train_matrix: numpy array with shape (n_items, n_users) corresponding to the train
-        rating matrix.
+         rating matrix.
         :param test_matrix: numpy array with shape (n_items, n_users) corresponding to the test
-        rating matrix.
+         rating matrix.
         :param epochs: integer, number of training epochs.
         :param alpha: float, regularization weight.
         :param n_features: integer, latent features.
         :param lr: float, step size for the gradient descent method.
         """
         if not resume:
-            self._initialize_model(n_features, alpha)
+            self.initialize_model(n_features, alpha)
             self.has_been_trained = True
         else:
             assert self.has_been_trained, 'The model has not been trained or loaded'
@@ -233,6 +239,7 @@ class CollaborativeFiltering(object):
          index in the numpy rating matrix. The resulting dataframe must then be related to a particular
          user by finding the user_id corresponding to that particular array index. If the idx does not
          exist in the predictions array, the predictions corresponds to a popularity based model.
+
          :param idx: numpy array column index.
          :return: pandas dataframe with column `predictions`.
         """
@@ -265,8 +272,9 @@ class CollaborativeFiltering(object):
         Creates a specification for a collaborative filtering model and saves it to a pickle file. The
         specification includes model hyperparameters, model parameters, test and train losses and lists
         of users and items.
+
         :param filename: string, filename without extension, to be saved with respect to the script
-        directory.
+         directory.
         """
         model_specs = {
             'n_users': self.n_users,
@@ -283,6 +291,7 @@ class CollaborativeFiltering(object):
         """
         Loads the pickle file with filename specified containing the model specifications into the class
         properties.
+
         :param filename: string, filename without extensions, specified with respect to the script directory.
         """
         with open(f'{filename}.pkl', 'rb') as f:
@@ -315,11 +324,11 @@ class CollaborativeFiltering(object):
         these filters, there are no activities for a category, these category is removed from the probability
         distribution. If there are no activities in all categories, the filter for seen activities is not
         applied.
+
         :param user_id: integer.
         :param months: integer, age of the user in months.
         :param question_df: pandas dataframe with the questions information (question_id, post_id).
-        :param taxonomy_df: pandas dataframe with the activities categories, to which category belongs each
-        activity.
+        :param taxonomy_df: pandas dataframe with the activities categories, to which category belongs each activity.
         :param content_df: pandas dataframe with content information (post_id, age ranges).
         :param response_df: pandas dataframe with the response information (response, response_id, question_id).
         :param sent_count: Counter object with the counts of all activities already sent to the user.

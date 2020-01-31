@@ -5,3 +5,7 @@ afinidata_recommender
    :maxdepth: 4
 
    afinidata_recommender
+   example
+   run_test_coverage
+   setup
+   tests

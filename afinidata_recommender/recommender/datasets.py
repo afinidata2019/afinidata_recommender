@@ -38,6 +38,7 @@ class Datasets(object):
         respectively. We then apply this mask and its inverse to the original ratings array in order
         to produce the train and test sets. This implies that the proportion of samples in the test size
         will not be exactly test_size.
+
         :param test_size: fraction of the total data set dedicated to the test set.
         :return: train and test numpy arrays with the same shape as the original dataframe.
         """

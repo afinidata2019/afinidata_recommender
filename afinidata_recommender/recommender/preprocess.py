@@ -12,6 +12,7 @@ class PreprocessGenericData(object):
         Defines a list of preprocessing tasks to be performed on a Pandas dataframe with a
         temporal nature. The rows in the dataframe correspond to `events` classified according to
         different `types`.
+
         :param pipeline: OrderedDict of the form:
             task: argument
         where task must be a method in the class and argument must be the method's arguments.
@@ -27,13 +28,14 @@ class PreprocessGenericData(object):
         """
         Transform dataframe columns into their corresponding types. This is necessary,
         for example, when a CSV file is imported and datetime columns are in a string format.
+
         :param df: Pandas dataframe
         :param dtype_specs: list of tuples with entries
             (column, dtype)
-        where column is a string specifying the name of a dataframe column and  dtype is another
-        string specifying the expected type the elements in the column should have. Supported
-        dtype strings are drawn from Pandas basic dtypes:
-        # https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#basics-dtypes
+         where column is a string specifying the name of a dataframe column and  dtype is another
+         string specifying the expected type the elements in the column should have. Supported
+         dtype strings are drawn from Pandas basic dtypes:
+         # https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#basics-dtypes
 
         :return: transformed dataframe.
         """
@@ -56,8 +58,8 @@ class PreprocessGenericData(object):
         :param df: Pandas dataframe
         :param value_specs: list of tuples with entries of the form
             (column, [value1, value2, ...])
-        where column is the name of the dataframe column and values in the list are those to be
-        discarded.
+         where column is the name of the dataframe column and values in the list are those to be
+         discarded.
         :return: reduced dataframe
         """
 
@@ -72,8 +74,8 @@ class PreprocessGenericData(object):
     def execute_pipeline(self, df):
         """
 
-        :param df:
-        :return:
+        :param df: pandas dataframe on which to execute pipeline.
+        :return: pandas dataframe resulting from preprocessing.
         """
         for task in self.pipeline:
             args = self.pipeline[task]
@@ -100,8 +102,9 @@ class SetUpDataframes(object):
     def response_df(cls, raw_df):
         """
         Setup the responses dataframe.
+
         :param raw_df: Raw dataframe directly read from the MySQL database by the feedback_data
-        method in the ReadDatabase class.
+         method in the ReadDatabase class.
         :return: feedback pandas dataframe ready for use.
         """
         preprocessor = PreprocessInteractionData(cls.response_pipeline)
@@ -112,6 +115,7 @@ class SetUpDataframes(object):
         """
         Produce feedback matrix with rows associated to posts, columns associated to users and entries
         given by the feedback given by a user to a post.
+
         :param raw_df: raw feedback dataframe.
         :return: pandas dataframe.
         """

@@ -36,14 +36,6 @@ afinidata\_recommender.recommender.read\_db module
    :undoc-members:
    :show-inheritance:
 
-afinidata\_recommender.recommender.utils module
------------------------------------------------
-
-.. automodule:: afinidata_recommender.recommender.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------

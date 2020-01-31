@@ -4,34 +4,10 @@ tests package
 Submodules
 ----------
 
-tests.conftest module
----------------------
+tests.test\_model module
+------------------------
 
-.. automodule:: tests.conftest
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tests.test\_auth module
------------------------
-
-.. automodule:: tests.test_auth
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tests.test\_celery module
--------------------------
-
-.. automodule:: tests.test_celery
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tests.test\_user module
------------------------
-
-.. automodule:: tests.test_user
+.. automodule:: tests.test_model
    :members:
    :undoc-members:
    :show-inheritance:

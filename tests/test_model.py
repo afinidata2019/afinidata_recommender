@@ -72,7 +72,7 @@ def random_model():
     n_features = 2
     alpha = 0.
 
-    model._initialize_model(n_features, alpha)
+    model.initialize_model(n_features, alpha)
     return model
 
 
