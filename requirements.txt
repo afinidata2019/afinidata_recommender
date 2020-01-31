@@ -1,4 +1,4 @@
-py-amqp
+pyamqp
 pandas
 
 flask
