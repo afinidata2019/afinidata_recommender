@@ -28,22 +28,6 @@ afinidata\_recommender.config module
    :undoc-members:
    :show-inheritance:
 
-afinidata\_recommender.recommend module
----------------------------------------
-
-.. automodule:: afinidata_recommender.recommend
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-afinidata\_recommender.train module
------------------------------------
-
-.. automodule:: afinidata_recommender.train
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------
