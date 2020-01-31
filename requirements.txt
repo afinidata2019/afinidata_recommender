@@ -1,4 +1,4 @@
-librabbitmq
+py-amqp
 pandas
 
 flask
