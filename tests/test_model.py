@@ -206,6 +206,6 @@ class TestReadDatabase:
         )
 
         min_age = min_ages['min_range'].min()
-        assert min_age == 0
+        assert min_age == -9
 
 
