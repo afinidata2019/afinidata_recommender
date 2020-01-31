@@ -182,37 +182,3 @@ class TestTraining:
         parameters_after = random_model.parameters
         for parameter in parameters_after:
             assert np.linalg.norm(parameters_after[parameter] - parameters_before[parameter]) <= 1e-09
-
-
-class TestReadDatabase:
-
-    def test_read_max_age(self):
-        load_dotenv('.env')
-
-        # environment variables
-        DB_URI = os.environ.get("DB_URI")
-
-        # set up database reader
-        engine = create_engine(DB_URI)
-        reader_cm = ReadDatabase(engine, 'CM_BD')
-
-        max_ages = reader_cm.get_data(
-            'id, max_range',
-            'posts_post'
-        )
-
-        max_age = max_ages['max_range'].max()
-        assert max_age == 200
-
-        min_ages = reader_cm.get_data(
-            'id, min_range',
-            'posts_post',
-            "status IN ('published')"
-        )
-
-        min_age = min_ages['min_range'].min()
-        assert min_age == -9
-
-
-
-
