@@ -177,6 +177,11 @@ class TestTraining:
 
     def test_save_and_load(self, random_model):
         parameters_before = random_model.parameters
+        random_model.save_model('random_model')
+        random_model.load_model('random_model')
+        parameters_after = random_model.parameters
+        for parameter in parameters_after:
+            assert np.linalg.norm(parameters_after[parameter] - parameters_before[parameter]) <= 1e-09
 
 
 class TestReadDatabase:
@@ -207,5 +212,7 @@ class TestReadDatabase:
 
         min_age = min_ages['min_range'].min()
         assert min_age == -9
+
+
 
 
