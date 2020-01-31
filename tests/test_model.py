@@ -13,11 +13,6 @@ from afinidata_recommender.recommender.preprocess import SetUpDataframes
 from afinidata_recommender.recommender.datasets import Datasets
 
 
-#@pytest.fixture
-#def response_df():
-#    return pd.read_csv('response_df.csv')
-
-
 @pytest.fixture
 def random_response_df():
     data = {
