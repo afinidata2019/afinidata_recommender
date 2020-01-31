@@ -12,7 +12,7 @@ Here are some important resources:
   
 ## Running in development
 
-To run **afinidata** on development, we recommend that an environmente be created:
+To run **afinidata**'s recommender on development, we recommend that an environmente be created:
 
     $ git clone https://github.com/afinidata2019/afinidata_recommender.git
     $ cd afinidata_recommender
