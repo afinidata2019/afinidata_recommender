@@ -15,6 +15,10 @@ from afinidata_recommender.recommender.datasets import Datasets
 
 @pytest.fixture
 def random_response_df():
+    """
+    Creates a pandas dataframe with mock users, items and ratings, similar to the real afinidata data.
+    """
+
     data = {
         'user_id': np.arange(1, 101),
         'response': np.random.randint(1, 4, 100),
@@ -25,16 +29,28 @@ def random_response_df():
 
 @pytest.fixture
 def zero_response_matrix():
+    """
+    Creates a response matrix with all zero ratings.
+    """
+
     return np.zeros((100, 100))
 
 
 @pytest.fixture
 def random_response_matrix():
+    """
+    Creates a response matrix with random entries.
+    """
+
     return np.random.rand(100, 100)
 
 
 @pytest.fixture
 def zero_model():
+    """
+    Creates a collaborative filtering model with all parameters equal to zero.
+    """
+
     model = CollaborativeFiltering()
     model.n_users = 100
     model.n_items = 100
@@ -56,6 +72,10 @@ def zero_model():
 
 @pytest.fixture
 def random_model():
+    """
+    Creates a collaborative filtering model with all parameters being random.
+    """
+
     model = CollaborativeFiltering()
     model.n_users = 100
     model.n_items = 100
@@ -73,7 +93,12 @@ def random_model():
 
 class TestTraining:
     def test_loss_function(self, zero_response_matrix, zero_model):
-        alpha = 0
+        """
+        Tests that the loss function of a model with all parameters equal to zero fit a response matrix with entries
+        all equal to zero.
+        """
+
+        alpha = 0.
         assert zero_model.loss(
             review_matrix=zero_response_matrix,
             mu=zero_model.parameters['mean_rating'],
@@ -86,7 +111,7 @@ class TestTraining:
 
     def test_gradients(self, random_response_matrix, random_model):
         """
-        This test implements the definition of a gradient and compares its result with the result for
+        Tests implements the definition of a gradient and compares its result with the result for
         gradients from the parameter_gradients method.
         """
         alpha = 0.
@@ -132,6 +157,10 @@ class TestTraining:
         assert np.abs(b_item_grad[5, 0] - b_item_grad_def) <= 1e-04
 
     def test_training(self, random_response_df, random_model):
+        """
+        Tests that model parameters are changed when a single optimization step takes place.
+        """
+
         response_matrix = SetUpDataframes.response_matrix(random_response_df)
 
         # train test split
@@ -164,6 +193,9 @@ class TestTraining:
         assert random_model.has_been_trained
 
     def test_prediction(self, zero_model):
+        """
+        Tests that the zero model predicts always zero.
+        """
         model_predictions = zero_model.predict_rating(50)['predictions']
         model_predictions_default = zero_model.predict_rating(1000)['predictions']
 
@@ -171,6 +203,10 @@ class TestTraining:
         assert model_predictions_default.mean() == 0
 
     def test_save_and_load(self, random_model):
+        """
+        Tests that model parameters are the same when loaded as those that were saved.
+        """
+
         parameters_before = random_model.parameters
         random_model.save_model('random_model')
         random_model.load_model('random_model')
