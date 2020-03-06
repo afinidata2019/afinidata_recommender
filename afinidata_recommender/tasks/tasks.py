@@ -4,6 +4,7 @@ import os
 import pickle
 
 from celery import Celery
+from celery.schedules import crontab
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
@@ -157,3 +158,13 @@ def recommend(user_id, months):
         sent_count=sent_count)
 
     return ranking.to_json()
+
+
+@app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+
+    # Executes every day every 3 hours.
+    sender.add_periodic_task(
+        crontab(minute=0, hour='*/3'),
+        test.s('Happy Mondays!'),
+    )
