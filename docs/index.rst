@@ -11,7 +11,6 @@ Welcome to afinidata_recommender's documentation!
    :caption: Contents:
 
    afinidata_recommender
-   setup
    tests
 
 
